@@ -8,9 +8,11 @@ from typing import Optional, Dict, Any, List
 
 from task_manager import task_manager, TaskStatus
 from coordinator import coordinator
+from auth import TokenAuthMiddleware, auth_mode
 
 app = FastAPI(title="RemotePilot Daemon", version="1.0.0")
 
+app.add_middleware(TokenAuthMiddleware)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 class TaskSubmitRequest(BaseModel):
@@ -18,7 +20,11 @@ class TaskSubmitRequest(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"status": "RemotePilot Online", "version": "1.0.0"}
+    return {"status": "RemotePilot Online", "version": "1.0.0", "auth": auth_mode()}
+
+@app.get("/health")
+async def health():
+    return {"status": "ok", "auth": auth_mode()}
 
 @app.post("/task/submit")
 async def submit_task(req: TaskSubmitRequest):

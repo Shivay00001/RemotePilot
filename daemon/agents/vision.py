@@ -1,7 +1,7 @@
 import io
 import base64
-import pyautogui
-from PIL import Image
+# pyautogui is imported lazily inside execute(): it needs a display at import
+# time on some platforms, which would prevent the daemon from booting headless.
 import requests
 from typing import Dict, Any
 from .base import Agent
@@ -20,6 +20,8 @@ class VisionAgent(Agent):
         
         # 1. Capture Screenshot
         try:
+            import pyautogui  # lazy: needs a display; daemon must boot headless
+
             screenshot = pyautogui.screenshot()
             
             # Convert to Base64

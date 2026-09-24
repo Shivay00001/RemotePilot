@@ -1,15 +1,25 @@
-import pyautogui
 import platform
 import asyncio
 from typing import Dict, Any
 from .base import Agent
 
+try:
+    import pyautogui  # needs a display; unavailable headless
+    _PYAUTOGUI_OK = True
+except Exception:  # noqa: BLE001 - any import failure (no DISPLAY, missing X libs)
+    pyautogui = None  # type: ignore
+    _PYAUTOGUI_OK = False
+
 class ActionAgent(Agent):
     def __init__(self):
         super().__init__(name="Action")
-        # Safety: Fail-safe corner active
-        pyautogui.FAILSAFE = True
-        self.screen_width, self.screen_height = pyautogui.size()
+        if _PYAUTOGUI_OK:
+            # Safety: Fail-safe corner active
+            pyautogui.FAILSAFE = True
+            self.screen_width, self.screen_height = pyautogui.size()
+        else:
+            # Headless: native OS actions are unavailable until a display exists.
+            self.screen_width, self.screen_height = None, None
         self.browser = None
         self.context = None
         self.page = None
@@ -50,6 +60,8 @@ class ActionAgent(Agent):
 
             # --- Native OS Actions ---
             elif action_type == "CLICK":
+                if not _PYAUTOGUI_OK:
+                    return {"status": "error", "error": "pyautogui unavailable (headless, no display)"}
                 # Expects "x y" or task has x,y
                 x = task.get("x")
                 y = task.get("y")
@@ -64,10 +76,14 @@ class ActionAgent(Agent):
                 return {"status": "error", "error": "Missing coordinates"}
 
             elif action_type == "TYPE":
+                if not _PYAUTOGUI_OK:
+                    return {"status": "error", "error": "pyautogui unavailable (headless, no display)"}
                 pyautogui.write(value, interval=0.05)
                 return {"status": "success", "detail": f"Typed: {value}"}
 
             elif action_type == "HOTKEY":
+                if not _PYAUTOGUI_OK:
+                    return {"status": "error", "error": "pyautogui unavailable (headless, no display)"}
                 keys = value.split('+')
                 pyautogui.hotkey(*keys)
                 return {"status": "success", "detail": f"Pressed: {value}"}
