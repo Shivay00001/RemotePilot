@@ -1,5 +1,7 @@
 # RemotePilot
 
+Built by [VisionQuantech](https://visionquantech.com) — AI agents, apps & tools for small businesses.
+
 Autonomous remote agent daemon: a FastAPI service (`daemon/`) that accepts a goal,
 plans multi-step execution with an agent pipeline (planner → security screen → action
 → verifier → re-plan loop → synthesis), and streams logs over websocket. A Flutter
